@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: macos-15
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        run: ./Scripts/run-tests.sh
+
+      - name: Build universal app
+        run: ./Scripts/build-app.sh
+
+      - name: Verify bundled architectures and signature
+        run: |
+          lipo -verify_arch arm64 x86_64 dist/CleanMyScreen.app/Contents/MacOS/CleanMyScreen
+          codesign --verify --deep --strict dist/CleanMyScreen.app
+
+      - name: Build and verify DMGs
+        run: ./Scripts/build-dmgs.sh
+
+      - name: Upload unsigned build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CleanMyScreen-${{ github.sha }}
+          path: |
+            dist/releases/*.dmg
+            dist/releases/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
