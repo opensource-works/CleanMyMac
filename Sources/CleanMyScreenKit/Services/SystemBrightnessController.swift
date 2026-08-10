@@ -2,6 +2,18 @@ import CoreGraphics
 import Darwin
 import Foundation
 
+private final class DynamicFrameworkHandle: @unchecked Sendable {
+    let pointer: UnsafeMutableRawPointer
+
+    init(_ pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    deinit {
+        dlclose(pointer)
+    }
+}
+
 /// Best-effort software brightness control for displays supported by
 /// CoreDisplay. Unsupported displays are deliberately ignored.
 @MainActor
@@ -15,7 +27,7 @@ public final class SystemBrightnessController: BrightnessControlling {
         Float
     ) -> Int32
 
-    private var frameworkHandle: UnsafeMutableRawPointer?
+    private var frameworkHandle: DynamicFrameworkHandle?
     private var getBrightnessFunction: GetBrightnessFunction?
     private var setBrightnessFunction: SetBrightnessFunction?
     private var originalBrightness: [CGDirectDisplayID: Float] = [:]
@@ -48,7 +60,7 @@ public final class SystemBrightnessController: BrightnessControlling {
             return
         }
 
-        frameworkHandle = handle
+        frameworkHandle = DynamicFrameworkHandle(handle)
         getBrightnessFunction = unsafeBitCast(
             getSymbol,
             to: GetBrightnessFunction.self
@@ -57,13 +69,6 @@ public final class SystemBrightnessController: BrightnessControlling {
             setSymbol,
             to: SetBrightnessFunction.self
         )
-    }
-
-    isolated deinit {
-        restore()
-        if let frameworkHandle {
-            dlclose(frameworkHandle)
-        }
     }
 
     public func maximizeSupportedDisplays() {

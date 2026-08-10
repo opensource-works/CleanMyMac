@@ -13,10 +13,7 @@ let package = Package(
     targets: [
         .target(
             name: "CleanMyScreenKit",
-            path: "Sources/CleanMyScreenKit",
-            swiftSettings: [
-                .enableExperimentalFeature("IsolatedDeinit")
-            ]
+            path: "Sources/CleanMyScreenKit"
         ),
         .executableTarget(
             name: "CleanMyScreen",
