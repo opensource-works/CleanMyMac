@@ -36,3 +36,9 @@ for architecture in arm64 x86_64; do
     hdiutil verify "$output_path" >/dev/null
     echo "$output_path"
 done
+
+(
+    cd "$OUTPUT_ROOT"
+    shasum -a 256 CleanMyScreen-arm64.dmg CleanMyScreen-x86_64.dmg > SHA256SUMS.txt
+)
+echo "$OUTPUT_ROOT/SHA256SUMS.txt"

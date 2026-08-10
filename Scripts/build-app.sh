@@ -44,6 +44,10 @@ fi
 mkdir -p "$OUTPUT_ROOT"
 ditto --noextattr --noqtn "$STAGED_APP" "$APP_ROOT"
 xattr -cr "$APP_ROOT"
+# File Provider folders can immediately reapply bundle-level metadata after a
+# copy. Remove those two attributes explicitly before the final verification.
+xattr -d com.apple.FinderInfo "$APP_ROOT" 2>/dev/null || true
+xattr -d 'com.apple.fileprovider.fpfs#P' "$APP_ROOT" 2>/dev/null || true
 codesign --verify --deep --strict "$APP_ROOT"
 
 echo "$APP_ROOT"

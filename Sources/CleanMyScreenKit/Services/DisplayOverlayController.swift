@@ -32,22 +32,6 @@ public final class DisplayOverlayController: NSObject, OverlayControlling {
         )
     }
 
-    isolated deinit {
-        hintFadeTimer?.invalidate()
-        hudDismissTimer?.invalidate()
-        hudCloseTimer?.invalidate()
-        closeCleaningWindows()
-        dismissTransientHUD()
-
-        if cursorIsHidden {
-            NSCursor.unhide()
-        }
-
-        // Removing the selector observer can retain a temporary reference to
-        // self, so keep it as the final operation in an isolated deinitializer.
-        NotificationCenter.default.removeObserver(self)
-    }
-
     public func showCleaningOverlay(onAllDisplays: Bool, unlockHint: String) {
         dismissTransientHUD()
         closeCleaningWindows()
