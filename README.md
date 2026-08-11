@@ -72,3 +72,6 @@ Full Xcode is only required for an Xcode project workflow, Developer ID signing,
 ## License
 
 CleanMyScreen is released under the [MIT License](LICENSE).
+
+
+本项目积极参与并认可 [LINUX DO 社区](https://linux.do/)
