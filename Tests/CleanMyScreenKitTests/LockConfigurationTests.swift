@@ -4,6 +4,9 @@ import Testing
 @Test("All three modes remain first-class and free")
 func exposesThreeModes() {
     #expect(LockMode.allCases == [.cleaning, .petKid, .selective])
+    #expect(!LockMode.cleaning.hidesApplicationOnActivation)
+    #expect(LockMode.petKid.hidesApplicationOnActivation)
+    #expect(LockMode.selective.hidesApplicationOnActivation)
 }
 
 @Test("Cleaning defaults match the selected prototype")

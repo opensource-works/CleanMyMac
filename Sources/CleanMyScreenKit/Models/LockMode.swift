@@ -22,4 +22,11 @@ public enum LockMode: String, CaseIterable, Identifiable, Sendable {
         case .selective: "lock.square"
         }
     }
+
+    /// Viewing modes should hand the foreground back to the content the user
+    /// wants to watch. Cleaning keeps its own window because the display is
+    /// immediately covered by the cleaning overlay.
+    public var hidesApplicationOnActivation: Bool {
+        self != .cleaning
+    }
 }

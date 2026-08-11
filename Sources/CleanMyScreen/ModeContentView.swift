@@ -4,6 +4,11 @@ import SwiftUI
 
 struct ModeContentView: View {
     @EnvironmentObject private var coordinator: LockSessionCoordinator
+    let returnToModes: () -> Void
+
+    init(returnToModes: @escaping () -> Void = {}) {
+        self.returnToModes = returnToModes
+    }
 
     var body: some View {
         VStack(spacing: 22) {
@@ -19,6 +24,20 @@ struct ModeContentView: View {
                 .opacity(coordinator.sessionState.isIdle ? 1 : 0.62)
 
             SessionActionView()
+
+            if coordinator.selectedMode == .selective {
+                HStack {
+                    Spacer()
+                    Button(action: returnToModes) {
+                        Label("Back to modes", systemImage: "arrow.up")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Back to mode selector")
+                }
+                .padding(.top, -8)
+            }
         }
         .frame(maxWidth: .infinity)
     }
