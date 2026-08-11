@@ -93,9 +93,10 @@ public final class LockSessionCoordinator: ObservableObject {
         }
 
         countdownTask?.cancel()
+        let countdownSeconds = selectedMode.countdownSeconds
         countdownTask = Task { [weak self] in
             guard let self else { return }
-            for seconds in stride(from: 3, through: 1, by: -1) {
+            for seconds in stride(from: countdownSeconds, through: 1, by: -1) {
                 guard !Task.isCancelled else { return }
                 self.sessionState = .countingDown(seconds)
                 try? await Task.sleep(for: .seconds(1))

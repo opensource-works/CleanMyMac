@@ -11,7 +11,7 @@ struct ModeContentView: View {
     }
 
     var body: some View {
-        VStack(spacing: 22) {
+        VStack(spacing: coordinator.selectedMode == .petKid ? 12 : 22) {
             ModeHero(
                 mode: coordinator.selectedMode,
                 statusTitle: coordinator.statusTitle,
@@ -22,6 +22,10 @@ struct ModeContentView: View {
             configurationControls
                 .disabled(!coordinator.sessionState.isIdle)
                 .opacity(coordinator.sessionState.isIdle ? 1 : 0.62)
+
+            if coordinator.selectedMode == .petKid {
+                PetVideoPreparationHint()
+            }
 
             SessionActionView()
 
@@ -141,6 +145,31 @@ struct ModeContentView: View {
                     .frame(maxWidth: 260)
             }
         }
+    }
+}
+
+private struct PetVideoPreparationHint: View {
+    var body: some View {
+        HStack(alignment: .center, spacing: 9) {
+            Image(systemName: "play.rectangle.fill")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(AppTheme.accent)
+                .frame(width: 21)
+
+            Text("After Start, this window hides. You’ll have 5 seconds to open or full-screen your video.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .frame(maxWidth: 520, alignment: .leading)
+        .background(AppTheme.accent.opacity(0.055), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                .stroke(AppTheme.accent.opacity(0.18), lineWidth: 1)
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 

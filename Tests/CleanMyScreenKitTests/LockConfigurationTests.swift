@@ -7,6 +7,12 @@ func exposesThreeModes() {
     #expect(!LockMode.cleaning.hidesApplicationOnActivation)
     #expect(LockMode.petKid.hidesApplicationOnActivation)
     #expect(LockMode.selective.hidesApplicationOnActivation)
+    #expect(!LockMode.cleaning.hidesApplicationWhenCountdownBegins)
+    #expect(LockMode.petKid.hidesApplicationWhenCountdownBegins)
+    #expect(!LockMode.selective.hidesApplicationWhenCountdownBegins)
+    #expect(LockMode.cleaning.countdownSeconds == 3)
+    #expect(LockMode.petKid.countdownSeconds == 5)
+    #expect(LockMode.selective.countdownSeconds == 3)
 }
 
 @Test("Cleaning defaults match the selected prototype")

@@ -39,6 +39,25 @@ func permissionAllowsCountdown() async {
     coordinator.cancelCountdown()
 }
 
+@MainActor
+@Test("Pet and Kid mode provides a five-second preparation countdown")
+func petKidPreparationCountdown() async {
+    let input = TestInputBlocker(hasMonitoringAccess: true)
+    let coordinator = LockSessionCoordinator(
+        inputBlocker: input,
+        hidBlocker: TestHIDBlocker(),
+        overlays: TestOverlayController(),
+        brightness: TestBrightnessController()
+    )
+    coordinator.selectedMode = .petKid
+
+    coordinator.startSelectedMode()
+    await Task.yield()
+
+    #expect(coordinator.sessionState == .countingDown(5))
+    coordinator.cancelCountdown()
+}
+
 private final class TestInputBlocker: InputBlocking, @unchecked Sendable {
     let hasMonitoringAccess: Bool
     private(set) var monitoringRequestCount = 0
