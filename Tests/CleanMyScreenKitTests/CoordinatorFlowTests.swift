@@ -43,19 +43,25 @@ func permissionAllowsCountdown() async {
 @Test("Pet and Kid mode provides a five-second preparation countdown")
 func petKidPreparationCountdown() async {
     let input = TestInputBlocker(hasMonitoringAccess: true)
+    let overlays = TestOverlayController()
     let coordinator = LockSessionCoordinator(
         inputBlocker: input,
         hidBlocker: TestHIDBlocker(),
-        overlays: TestOverlayController(),
+        overlays: overlays,
         brightness: TestBrightnessController()
     )
     coordinator.selectedMode = .petKid
+    overlays.onShowPreparation = { _ in
+        #expect(coordinator.sessionState == .idle)
+    }
 
     coordinator.startSelectedMode()
     await Task.yield()
 
     #expect(coordinator.sessionState == .countingDown(5))
+    #expect(overlays.preparationHUDSeconds == [5])
     coordinator.cancelCountdown()
+    #expect(overlays.hideAllCount == 1)
 }
 
 private final class TestInputBlocker: InputBlocking, @unchecked Sendable {
@@ -96,14 +102,23 @@ private final class TestHIDBlocker: HIDDeviceBlocking, @unchecked Sendable {
 @MainActor
 private final class TestOverlayController: OverlayControlling {
     var isShowingCleaningOverlay = false
+    var preparationHUDSeconds: [Int] = []
+    var hideAllCount = 0
+    var onShowPreparation: ((Int) -> Void)?
 
     func showCleaningOverlay(onAllDisplays: Bool, unlockHint: String) {
         isShowingCleaningOverlay = true
     }
 
+    func showPreparationHUD(secondsRemaining: Int) {
+        preparationHUDSeconds.append(secondsRemaining)
+        onShowPreparation?(secondsRemaining)
+    }
+
     func showTransientHUD(title: String, detail: String) {}
 
     func hideAll() {
+        hideAllCount += 1
         isShowingCleaningOverlay = false
     }
 }
