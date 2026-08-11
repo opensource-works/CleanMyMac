@@ -46,6 +46,7 @@ public protocol HIDDeviceBlocking: AnyObject {
 public protocol OverlayControlling: AnyObject {
     var isShowingCleaningOverlay: Bool { get }
     func showCleaningOverlay(onAllDisplays: Bool, unlockHint: String)
+    func showPreparationHUD(secondsRemaining: Int)
     func showTransientHUD(title: String, detail: String)
     func hideAll()
 }

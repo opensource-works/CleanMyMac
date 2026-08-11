@@ -56,7 +56,15 @@ struct ContentView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: coordinator.selectedMode)
         .animation(.easeInOut(duration: 0.2), value: coordinator.warningMessage)
-        .onChange(of: coordinator.sessionState) { _, state in
+        .onChange(of: coordinator.sessionState) { previousState, state in
+            if case .countingDown = previousState,
+               state == .idle,
+               coordinator.selectedMode.hidesApplicationWhenCountdownBegins {
+                NSApp.unhide(nil)
+                NSApp.activate(ignoringOtherApps: true)
+                return
+            }
+
             let shouldHide = switch state {
             case .idle:
                 false

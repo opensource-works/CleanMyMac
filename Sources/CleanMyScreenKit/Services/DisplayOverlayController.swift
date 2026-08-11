@@ -13,6 +13,8 @@ public final class DisplayOverlayController: NSObject, OverlayControlling {
     private var cleaningWindows: [NSWindow] = []
     private var hintViews: [NSView] = []
     private var transientHUDWindow: NSWindow?
+    private var transientHUDTitleLabel: NSTextField?
+    private var transientHUDDetailLabel: NSTextField?
     private var hintFadeTimer: Timer?
     private var hudDismissTimer: Timer?
     private var hudCloseTimer: Timer?
@@ -49,6 +51,33 @@ public final class DisplayOverlayController: NSObject, OverlayControlling {
     }
 
     public func showTransientHUD(title: String, detail: String) {
+        presentHUD(title: title, detail: detail, dismissAfter: 3.5)
+    }
+
+    public func showPreparationHUD(secondsRemaining: Int) {
+        let unit = secondsRemaining == 1 ? "second" : "seconds"
+        presentHUD(
+            title: "Open or full-screen your video",
+            detail: "Input locks in \(secondsRemaining) \(unit)",
+            dismissAfter: nil
+        )
+    }
+
+    private func presentHUD(title: String, detail: String, dismissAfter: TimeInterval?) {
+        hudDismissTimer?.invalidate()
+        hudDismissTimer = nil
+        hudCloseTimer?.invalidate()
+        hudCloseTimer = nil
+
+        if transientHUDWindow != nil,
+           let titleLabel = transientHUDTitleLabel,
+           let detailLabel = transientHUDDetailLabel {
+            titleLabel.stringValue = title
+            detailLabel.stringValue = detail
+            scheduleHUDDismissal(after: dismissAfter)
+            return
+        }
+
         hideAll()
 
         guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
@@ -78,8 +107,8 @@ public final class DisplayOverlayController: NSObject, OverlayControlling {
             .ignoresCycle,
         ]
 
-        let contentView = makeHUDContentView(title: title, detail: detail)
-        panel.contentView = contentView
+        let content = makeHUDContentView(title: title, detail: detail)
+        panel.contentView = content.view
         panel.alphaValue = 0
         panel.orderFrontRegardless()
 
@@ -89,13 +118,9 @@ public final class DisplayOverlayController: NSObject, OverlayControlling {
         }
 
         transientHUDWindow = panel
-        hudDismissTimer = Timer.scheduledTimer(
-            timeInterval: 3.5,
-            target: self,
-            selector: #selector(beginHUDDismissal(_:)),
-            userInfo: nil,
-            repeats: false
-        )
+        transientHUDTitleLabel = content.titleLabel
+        transientHUDDetailLabel = content.detailLabel
+        scheduleHUDDismissal(after: dismissAfter)
     }
 
     public func hideAll() {
@@ -223,7 +248,10 @@ public final class DisplayOverlayController: NSObject, OverlayControlling {
         return container
     }
 
-    private func makeHUDContentView(title: String, detail: String) -> NSView {
+    private func makeHUDContentView(
+        title: String,
+        detail: String
+    ) -> (view: NSView, titleLabel: NSTextField, detailLabel: NSTextField) {
         let container = NSVisualEffectView()
         container.material = .hudWindow
         container.blendingMode = .behindWindow
@@ -256,7 +284,18 @@ public final class DisplayOverlayController: NSObject, OverlayControlling {
             stack.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -24),
             stack.centerYAnchor.constraint(equalTo: container.centerYAnchor),
         ])
-        return container
+        return (container, titleLabel, detailLabel)
+    }
+
+    private func scheduleHUDDismissal(after delay: TimeInterval?) {
+        guard let delay else { return }
+        hudDismissTimer = Timer.scheduledTimer(
+            timeInterval: delay,
+            target: self,
+            selector: #selector(beginHUDDismissal(_:)),
+            userInfo: nil,
+            repeats: false
+        )
     }
 
     @objc
@@ -296,6 +335,8 @@ public final class DisplayOverlayController: NSObject, OverlayControlling {
         transientHUDWindow?.orderOut(nil)
         transientHUDWindow?.close()
         transientHUDWindow = nil
+        transientHUDTitleLabel = nil
+        transientHUDDetailLabel = nil
     }
 
     private func closeCleaningWindows() {
@@ -315,5 +356,7 @@ public final class DisplayOverlayController: NSObject, OverlayControlling {
         transientHUDWindow?.orderOut(nil)
         transientHUDWindow?.close()
         transientHUDWindow = nil
+        transientHUDTitleLabel = nil
+        transientHUDDetailLabel = nil
     }
 }

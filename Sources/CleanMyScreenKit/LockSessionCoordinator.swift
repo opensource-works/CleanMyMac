@@ -98,6 +98,9 @@ public final class LockSessionCoordinator: ObservableObject {
             guard let self else { return }
             for seconds in stride(from: countdownSeconds, through: 1, by: -1) {
                 guard !Task.isCancelled else { return }
+                if self.selectedMode == .petKid {
+                    self.overlays.showPreparationHUD(secondsRemaining: seconds)
+                }
                 self.sessionState = .countingDown(seconds)
                 try? await Task.sleep(for: .seconds(1))
             }
@@ -110,6 +113,7 @@ public final class LockSessionCoordinator: ObservableObject {
         guard case .countingDown = sessionState else { return }
         countdownTask?.cancel()
         countdownTask = nil
+        overlays.hideAll()
         sessionState = .idle
     }
 
