@@ -29,4 +29,15 @@ public enum LockMode: String, CaseIterable, Identifiable, Sendable {
     public var hidesApplicationOnActivation: Bool {
         self != .cleaning
     }
+
+    public var hidesApplicationWhenCountdownBegins: Bool {
+        self == .petKid
+    }
+
+    public var countdownSeconds: Int {
+        switch self {
+        case .petKid: 5
+        case .cleaning, .selective: 3
+        }
+    }
 }

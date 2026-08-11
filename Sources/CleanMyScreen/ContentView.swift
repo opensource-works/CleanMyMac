@@ -57,11 +57,16 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.2), value: coordinator.selectedMode)
         .animation(.easeInOut(duration: 0.2), value: coordinator.warningMessage)
         .onChange(of: coordinator.sessionState) { _, state in
-            guard state == .active,
-                  coordinator.selectedMode.hidesApplicationOnActivation
-            else {
-                return
+            let shouldHide = switch state {
+            case .idle:
+                false
+            case .countingDown:
+                coordinator.selectedMode.hidesApplicationWhenCountdownBegins
+            case .active:
+                coordinator.selectedMode.hidesApplicationOnActivation
             }
+
+            guard shouldHide else { return }
 
             // The app must keep running to enforce the lock, so hide it instead
             // of terminating it. The menu-bar item remains available.
