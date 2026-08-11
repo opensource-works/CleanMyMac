@@ -84,6 +84,14 @@ public final class LockSessionCoordinator: ObservableObject {
         }
 
         clearMessages()
+
+        // Ask before the countdown so a missing permission never makes the
+        // user wait through an animation that cannot complete successfully.
+        guard inputBlocker.requestMonitoringAccess() else {
+            present(error: CleanMyScreenError.inputMonitoringRequired)
+            return
+        }
+
         countdownTask?.cancel()
         countdownTask = Task { [weak self] in
             guard let self else { return }
@@ -160,9 +168,6 @@ public final class LockSessionCoordinator: ObservableObject {
             }
 
             if !eventMask.isEmpty {
-                guard inputBlocker.requestMonitoringAccess() else {
-                    throw CleanMyScreenError.inputMonitoringRequired
-                }
                 try inputBlocker.start(blocking: eventMask) { [weak self] in
                     Task { @MainActor in
                         self?.stop()

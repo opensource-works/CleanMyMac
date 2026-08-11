@@ -18,37 +18,55 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
-                VStack(spacing: 26) {
-                    ModeSelector(
-                        selection: $coordinator.selectedMode,
-                        isEnabled: coordinator.sessionState.isIdle
-                    )
-
-                    ModeContentView()
-
-                    if let warning = coordinator.warningMessage {
-                        MessageBanner(
-                            message: warning,
-                            systemImage: "exclamationmark.triangle.fill",
-                            tint: AppTheme.warning,
-                            dismiss: coordinator.clearWarning
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    VStack(spacing: 26) {
+                        ModeSelector(
+                            selection: $coordinator.selectedMode,
+                            isEnabled: coordinator.sessionState.isIdle
                         )
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .id("mode-selector")
+
+                        ModeContentView {
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                scrollProxy.scrollTo("mode-selector", anchor: .top)
+                            }
+                        }
+
+                        if let warning = coordinator.warningMessage {
+                            MessageBanner(
+                                message: warning,
+                                systemImage: "exclamationmark.triangle.fill",
+                                tint: AppTheme.warning,
+                                dismiss: coordinator.clearWarning
+                            )
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
                     }
+                    .frame(maxWidth: AppTheme.contentWidth)
+                    .padding(.horizontal, AppTheme.outerPadding)
+                    .padding(.top, 24)
+                    .padding(.bottom, 24)
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: AppTheme.contentWidth)
-                .padding(.horizontal, AppTheme.outerPadding)
-                .padding(.top, 24)
-                .padding(.bottom, 24)
-                .frame(maxWidth: .infinity)
+                .scrollIndicators(.never)
             }
-            .scrollIndicators(.never)
 
             SafetyExitFooter()
         }
         .animation(.easeInOut(duration: 0.2), value: coordinator.selectedMode)
         .animation(.easeInOut(duration: 0.2), value: coordinator.warningMessage)
+        .onChange(of: coordinator.sessionState) { _, state in
+            guard state == .active,
+                  coordinator.selectedMode.hidesApplicationOnActivation
+            else {
+                return
+            }
+
+            // The app must keep running to enforce the lock, so hide it instead
+            // of terminating it. The menu-bar item remains available.
+            NSApp.hide(nil)
+        }
         .alert("CleanMyScreen couldn’t start", isPresented: isPresentingError) {
             if let destination = coordinator.permissionSettingsDestination {
                 Button(settingsButtonTitle(for: destination)) {
